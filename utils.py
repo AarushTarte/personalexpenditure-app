@@ -44,3 +44,7 @@ def add_expense(date, category, description, amount):
     df = pd.concat([df, new_row], ignore_index=True)
 
     save_data(df)
+    
+def clear_data():
+    df = pd.DataFrame(columns=COLUMNS)
+    save_data(df)

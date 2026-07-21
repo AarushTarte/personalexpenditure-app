@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 
-from utils import load_data, add_expense
+from utils import load_data, add_expense, clear_data
 
 st.set_page_config(
     page_title="Expense Tracker",
@@ -72,9 +72,16 @@ elif menu == "View Expenses":
 
     df = load_data()
 
-    st.dataframe(df, use_container_width=True)
+    if   st.button("🗑️ Delete All Expenses"):
+         clear_data()
+         st.success("All expenses deleted successfully!")
+         st.rerun()
 
-    st.write(f"Total Records : {len(df)}")
+    if len(df) == 0:
+        st.info("No expenses found.")
+    else:
+        st.dataframe(df, use_container_width=True)
+        st.write(f"Total Records : {len(df)}")
 
 # -----------------------------
 # Summary
