@@ -1,14 +1,36 @@
+from auth import login, signup
 import streamlit as st
 import pandas as pd
 import plotly.express as px
 
-from utils import (
-    load_data,
-    add_expense,
-    delete_expense,
-    update_expense,
-    clear_data
+from database import (
+    load_user_expenses,
+    add_user_expense,
+    delete_user_expense,
+    clear_user_expenses,
+    get_budget,
+    update_budget,
+    update_user_expense
 )
+from utils import clear_data
+
+
+class Divider:
+    """Reusable visual separator with an optional title."""
+
+    def __init__(self, title=None, help_text=None):
+        self.title = title
+        self.help_text = help_text
+
+    def render(self):
+        st.divider()
+
+        if self.title:
+            st.subheader(self.title)
+
+        if self.help_text:
+            st.caption(self.help_text)
+
 
 # ==========================================
 # PAGE CONFIG
@@ -20,6 +42,53 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded"
 )
+if "logged_in" not in st.session_state:
+
+    st.session_state.logged_in=False
+
+if not st.session_state.logged_in:
+
+    st.title("🔐 Personal Expense Tracker")
+
+    page=st.radio("",["Login","Sign Up"])
+
+    username=st.text_input("Username")
+
+    password=st.text_input(
+        "Password",
+        type="password"
+    )
+
+    if page=="Login":
+
+        if st.button("Login"):
+
+            if login(username,password):
+
+                st.session_state.logged_in=True
+
+                st.session_state.username=username
+
+                st.rerun()
+
+            else:
+
+                st.error("Wrong Username or Password")
+
+    else:
+
+        if st.button("Create Account"):
+
+            if signup(username,password):
+
+                st.success("Account Created!")
+
+            else:
+
+                st.error("Username already exists")
+
+    st.stop()
+
 
 # ==========================================
 # LOAD CSS
@@ -35,7 +104,10 @@ with open("style.css") as f:
 # LOAD DATA
 # ==========================================
 
-df = load_data()
+df = load_user_expenses(
+    st.session_state.username
+)
+
 
 if not df.empty:
     df["Amount"] = pd.to_numeric(df["Amount"], errors="coerce")
@@ -56,12 +128,21 @@ menu = st.sidebar.radio(
         "📊 Analytics"
     ]
 )
+if st.sidebar.button("🚪 Logout"):
+
+    st.session_state.logged_in = False
+
+    st.session_state.username = ""
+
+    st.rerun()
 
 st.sidebar.markdown("---")
 
 st.sidebar.markdown("---")
 
 st.sidebar.markdown("## 📌 Quick Stats")
+
+budget = get_budget(st.session_state.username)
 
 st.sidebar.metric(
     "💰 Total",
@@ -77,6 +158,23 @@ st.sidebar.metric(
     "📂 Categories",
     df["Category"].nunique() if not df.empty else 0
 )
+st.sidebar.markdown("---")
+
+new_budget = st.sidebar.number_input(
+    "💰 Monthly Budget (₹)",
+    min_value=1000,
+    value=int(budget),
+    step=500
+)
+
+if new_budget != budget:
+
+    update_budget(
+        st.session_state.username,
+        new_budget
+    )
+
+    budget = new_budget
 
 # ==========================================
 # DASHBOARD
@@ -87,7 +185,6 @@ if menu == "🏠 Dashboard":
     st.markdown("""
 # 💸 Personal Expense Tracker
 
-### Smart Spending • Better Budgeting • Financial Insights
 """)
 
     total_spent = 0
@@ -102,20 +199,7 @@ if menu == "🏠 Dashboard":
     if not df.empty:
         total_categories = df["Category"].nunique()
 
-    # Budget Setting
-    if "budget" not in st.session_state:
-        st.session_state.budget = 50000
-
-    budget = st.sidebar.number_input(
-        "💰 Monthly Budget (₹)",
-        min_value=1000,
-        value=st.session_state.budget,
-        step=500
-    )
-
-    st.session_state.budget = budget
-
-    remaining = budget - total_spent
+    remaining = max(budget - total_spent, 0)
 
     c1, c2, c3, c4 = st.columns(4)
 
@@ -160,7 +244,7 @@ if menu == "🏠 Dashboard":
 
     st.subheader("🏆 Financial Health")
 
-    health = max(0, 100 - (total_spent / budget) * 100)
+    health = max(0, 100 - (total_spent / budget) * 100) if budget > 0 else 100
 
     st.progress(health / 100)
 
@@ -442,7 +526,8 @@ elif menu == "➕ Add Expense":
 
         else:
 
-            add_expense(
+            add_user_expense(
+                st.session_state.username,
                 date,
                 category,
                 description,
@@ -577,6 +662,74 @@ elif menu == "📋 Transactions":
             height=450
         )
 
+        st.divider()
+
+        st.subheader("✏️ Edit Expense")
+
+        edit_id = st.selectbox(
+            "Select Expense to Edit",
+            filtered_df["id"]
+        )
+
+        expense = filtered_df[filtered_df["id"] == edit_id].iloc[0]
+
+        new_date = st.date_input(
+            "Date",
+            pd.to_datetime(expense["Date"]).date()
+        )
+
+        new_category = st.selectbox(
+            "Category",
+            [
+                "Food",
+                "Transport",
+                "Shopping",
+                "Entertainment",
+                "Bills",
+                "Health",
+                "Education",
+                "Travel",
+                "Other"
+            ],
+            index=[
+                "Food",
+                "Transport",
+                "Shopping",
+                "Entertainment",
+                "Bills",
+                "Health",
+                "Education",
+                "Travel",
+                "Other"
+            ].index(expense["Category"])
+        )
+
+        new_description = st.text_input(
+            "Description",
+            expense["Description"]
+        )
+
+        new_amount = st.number_input(
+            "Amount",
+            min_value=0.0,
+            value=float(expense["Amount"])
+        )
+
+        if st.button("💾 Save Changes"):
+
+            update_user_expense(
+                edit_id,
+                st.session_state.username,
+                new_date,
+                new_category,
+                new_description,
+                new_amount
+            )
+
+            st.success("Expense updated successfully!")
+
+            st.rerun()
+
         # --------------------------------------
         # DELETE EXPENSE
         # --------------------------------------
@@ -585,19 +738,21 @@ elif menu == "📋 Transactions":
 
         st.subheader("🗑 Delete Expense")
 
-        delete_index = st.selectbox(
+        delete_id = st.selectbox(
             "Select Expense",
-            filtered_df.index,
+            filtered_df["id"],
             format_func=lambda x:
-                f"{filtered_df.loc[x,'Date'].date()} | "
-                f"{filtered_df.loc[x,'Category']} | "
-                f"{filtered_df.loc[x,'Description']} | "
-                f"₹{filtered_df.loc[x,'Amount']:.2f}"
+                f"{filtered_df.loc[filtered_df['id'] == x, 'Date'].iloc[0].date()} | "
+                f"{filtered_df.loc[filtered_df['id'] == x, 'Category'].iloc[0]} | "
+                f"{filtered_df.loc[filtered_df['id'] == x, 'Description'].iloc[0]} | "
+                f"₹{filtered_df.loc[filtered_df['id'] == x, 'Amount'].iloc[0]:.2f}"
         )
 
         if st.button("Delete Selected Expense"):
-
-            delete_expense(delete_index)
+            delete_user_expense(
+                delete_id,
+                st.session_state.username
+            )
 
             st.success("Expense deleted successfully!")
 
@@ -607,15 +762,14 @@ elif menu == "📋 Transactions":
         # DELETE ALL
         # --------------------------------------
 
-        st.divider()
-
-        st.subheader("⚠ Delete All Expenses")
+        Divider("⚠ Delete All Expenses").render()
 
         if st.button("Delete All Expenses"):
+            clear_user_expenses(
+                st.session_state.username
+            )
 
-            clear_data()
-
-            st.success("All expenses deleted.")
+            st.success("All your expenses have been deleted.")
 
             st.rerun()
 
@@ -628,17 +782,13 @@ elif menu == "📋 Transactions":
         csv = filtered_df.to_csv(index=False)
 
         st.download_button(
-
             label="📥 Download Transactions CSV",
-
             data=csv,
-
             file_name="expenses.csv",
-
-            mime="text/csv"
-
+            mime="text/csv",
         )
-        # ==========================================
+
+# ==========================================
 # ANALYTICS PAGE
 # ==========================================
 
