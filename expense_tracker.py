@@ -102,7 +102,18 @@ if menu == "🏠 Dashboard":
     if not df.empty:
         total_categories = df["Category"].nunique()
 
-    budget = 50000
+    # Budget Setting
+    if "budget" not in st.session_state:
+        st.session_state.budget = 50000
+
+    budget = st.sidebar.number_input(
+        "💰 Monthly Budget (₹)",
+        min_value=1000,
+        value=st.session_state.budget,
+        step=500
+    )
+
+    st.session_state.budget = budget
 
     remaining = budget - total_spent
 
