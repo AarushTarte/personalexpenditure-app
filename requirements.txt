@@ -6,3 +6,4 @@ plotly
 fpdf2
 streamlit
 bcrypt
+openai>=1.0.0
