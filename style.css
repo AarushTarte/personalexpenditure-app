@@ -20,26 +20,6 @@ body,
 
 }
 
-/* Hide Streamlit Menu */
-
-#MainMenu{
-
-    visibility:hidden;
-
-}
-
-footer{
-
-    visibility:hidden;
-
-}
-
-header{
-
-    visibility:hidden;
-
-}
-
 /* ===========================
    MAIN CONTAINER
 =========================== */
