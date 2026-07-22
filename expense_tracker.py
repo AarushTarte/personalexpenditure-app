@@ -515,12 +515,21 @@ elif menu == "📋 Transactions":
             min_amount = float(df["Amount"].min())
             max_amount = float(df["Amount"].max())
 
-            amount_range = st.slider(
-                "Amount Range (₹)",
-                min_value=min_amount,
-                max_value=max_amount,
-                value=(min_amount, max_amount)
-            )
+            if min_amount == max_amount:
+
+                st.info(f"All expenses are ₹{min_amount:.2f}")
+
+                amount_range = (min_amount, max_amount)
+
+            else:
+
+                amount_range = st.slider(
+                    "Amount Range (₹)",
+                    min_value=min_amount,
+                    max_value=max_amount,
+                    value=(min_amount, max_amount),
+                    step=1.0
+                )
 
         filtered_df = df.copy()
 
