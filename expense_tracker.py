@@ -895,14 +895,14 @@ by 10-15% to improve your monthly savings.
             pdf.cell(
                 200,
                 10,
-                f"Total Spending : ₹{total_spent:,.2f}",
+                f"Total Spending : Rs. {total_spent:,.2f}",
                 ln=True
             )
 
             pdf.cell(
                 200,
                 10,
-                f"Average Expense : ₹{avg_expense:,.2f}",
+                f"Average Expense : Rs.{avg_expense:,.2f}",
                 ln=True
             )
 
