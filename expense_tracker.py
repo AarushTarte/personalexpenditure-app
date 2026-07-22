@@ -1,8 +1,10 @@
 from auth import login, signup
+from chatbot import prepare_context, ask_ai
 import streamlit as st
 import pandas as pd
 import plotly.express as px
 
+from chatbot import ask_ai, create_summary, get_user_data
 from database import (
     load_user_expenses,
     add_user_expense,
@@ -125,7 +127,8 @@ menu = st.sidebar.radio(
         "🏠 Dashboard",
         "➕ Add Expense",
         "📋 Transactions",
-        "📊 Analytics"
+        "📊 Analytics",
+        "🤖 AI Assistant"
     ]
 )
 if st.sidebar.button("🚪 Logout"):
@@ -1034,22 +1037,70 @@ by 10-15% to improve your monthly savings.
 
         st.divider()
 
-        # ==========================================
-        # PDF EXPORT
-        # ==========================================
+# ==========================================
+# AI ASSISTANT PAGE
+# ==========================================
 
-        st.subheader("📄 Export Report")
+elif menu == "🤖 AI Assistant":
 
-        if st.button("Generate PDF Report"):
+    st.title("🤖 AI Financial Assistant")
 
+    df = get_user_data(st.session_state.username)
+    summary = create_summary(df)
+
+    if "messages" not in st.session_state:
+        st.session_state.messages = []
+
+    for message in st.session_state.messages:
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
+
+    prompt = st.chat_input("Ask about your expenses...")
+
+    if prompt:
+
+        st.session_state.messages.append(
+            {"role": "user", "content": prompt}
+        )
+
+        with st.chat_message("user"):
+            st.markdown(prompt)
+
+        context = prepare_context(st.session_state.username)
+        answer = ask_ai(prompt, context)
+
+        st.session_state.messages.append(
+            {"role": "assistant", "content": answer}
+        )
+
+        with st.chat_message("assistant"):
+            st.markdown(answer)
+
+    # ==========================================
+    # PDF EXPORT
+    # ==========================================
+
+    st.subheader("📄 Export Report")
+
+    if st.button("Generate PDF Report"):
+
+        if df.empty:
+            st.warning("No expense data available to export.")
+
+        else:
             from fpdf import FPDF
 
+            total_spent = float(df["Amount"].sum())
+            avg_expense = float(df["Amount"].mean())
+            highest_category = (
+                df.groupby("Category")["Amount"]
+                .sum()
+                .idxmax()
+            )
+
             pdf = FPDF()
-
             pdf.add_page()
-
             pdf.set_font("Arial", "B", 18)
-
             pdf.cell(
                 200,
                 10,
@@ -1059,7 +1110,6 @@ by 10-15% to improve your monthly savings.
             )
 
             pdf.ln(10)
-
             pdf.set_font("Arial", "", 12)
 
             pdf.cell(
@@ -1085,18 +1135,12 @@ by 10-15% to improve your monthly savings.
 
             pdf.output("Expense_Report.pdf")
 
-            with open(
-                "Expense_Report.pdf",
-                "rb"
-            ) as file:
-
+            with open("Expense_Report.pdf", "rb") as file:
                 st.download_button(
-
                     "⬇ Download PDF",
-
                     file,
-
-                    file_name="Expense_Report.pdf"
+                    file_name="Expense_Report.pdf",
+                    mime="application/pdf"
                 )
 
             st.success("PDF Generated Successfully!")
