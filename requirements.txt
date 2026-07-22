@@ -3,5 +3,6 @@ matplotlib
 numpy
 seaborn
 plotly
-fpdf
+fpdf2
 streamlit
+bcrypt
