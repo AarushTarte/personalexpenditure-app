@@ -1,0 +1,197 @@
+/* ===========================
+   GOOGLE FONT
+=========================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+/* ===========================
+   GLOBAL
+=========================== */
+
+html,
+body,
+[class*="css"]{
+
+    font-family:'Poppins',sans-serif;
+
+    background:#0B1120;
+
+    color:#F8FAFC;
+
+}
+
+/* Hide Streamlit Menu */
+
+#MainMenu{
+
+    visibility:hidden;
+
+}
+
+footer{
+
+    visibility:hidden;
+
+}
+
+header{
+
+    visibility:hidden;
+
+}
+
+/* ===========================
+   MAIN CONTAINER
+=========================== */
+
+.block-container{
+
+    padding-top:2rem;
+
+    padding-bottom:2rem;
+
+    padding-left:3rem;
+
+    padding-right:3rem;
+
+}
+
+/* ===========================
+   SIDEBAR
+=========================== */
+
+section[data-testid="stSidebar"]{
+
+    background:#111827;
+
+    border-right:1px solid #1F2937;
+
+}
+
+/* ===========================
+   BUTTONS
+=========================== */
+
+.stButton>button{
+
+    width:100%;
+
+    background:linear-gradient(135deg,#2563EB,#7C3AED);
+
+    color:white;
+
+    border:none;
+
+    border-radius:14px;
+
+    padding:14px;
+
+    font-weight:600;
+
+    transition:.3s;
+
+}
+
+.stButton>button:hover{
+
+    transform:translateY(-3px);
+
+    box-shadow:0px 8px 25px rgba(59,130,246,.4);
+
+}
+
+/* ===========================
+   METRIC CARDS
+=========================== */
+
+div[data-testid="metric-container"]{
+
+    background:rgba(30,41,59,.70);
+
+    border:1px solid rgba(255,255,255,.08);
+
+    backdrop-filter:blur(16px);
+
+    border-radius:20px;
+
+    padding:20px;
+
+    transition:.3s;
+
+    box-shadow:0 8px 20px rgba(0,0,0,.35);
+
+}
+
+div[data-testid="metric-container"]:hover{
+
+    transform:translateY(-6px);
+
+}
+
+/* ===========================
+   INPUTS
+=========================== */
+
+.stTextInput input,
+.stNumberInput input,
+.stDateInput input{
+
+    border-radius:12px !important;
+
+}
+
+/* ===========================
+   DATAFRAME
+=========================== */
+
+div[data-testid="stDataFrame"]{
+
+    border-radius:20px;
+
+    overflow:hidden;
+
+}
+
+/* ===========================
+   TITLES
+=========================== */
+
+h1{
+
+    font-size:42px;
+
+    font-weight:700;
+
+}
+
+h2{
+
+    font-weight:600;
+
+}
+
+h3{
+
+    color:#CBD5E1;
+
+}
+
+/* ===========================
+   PROGRESS BAR
+=========================== */
+
+.stProgress>div>div{
+
+    border-radius:20px;
+
+}
+
+/* ===========================
+   SUCCESS MESSAGE
+=========================== */
+
+div[data-baseweb="notification"]{
+
+    border-radius:16px;
+
+}

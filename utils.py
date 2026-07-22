@@ -1,27 +1,26 @@
-import pandas as pd
 import os
+import pandas as pd
 
 FILE = "expenses.csv"
 
-COLUMNS = ["Date", "Category", "Description", "Amount"]
+COLUMNS = [
+    "Date",
+    "Category",
+    "Description",
+    "Amount"
+]
 
 
 def load_data():
-    # Create file if it doesn't exist
+
     if not os.path.exists(FILE):
         df = pd.DataFrame(columns=COLUMNS)
         df.to_csv(FILE, index=False)
-        return df
-
-    # Check if file is empty
-    if os.path.getsize(FILE) == 0:
-        df = pd.DataFrame(columns=COLUMNS)
-        df.to_csv(FILE, index=False)
-        return df
 
     try:
         return pd.read_csv(FILE)
-    except pd.errors.EmptyDataError:
+
+    except:
         df = pd.DataFrame(columns=COLUMNS)
         df.to_csv(FILE, index=False)
         return df
@@ -32,19 +31,54 @@ def save_data(df):
 
 
 def add_expense(date, category, description, amount):
+
     df = load_data()
 
-    new_row = pd.DataFrame({
-        "Date":[date],
-        "Category":[category],
-        "Description":[description],
-        "Amount":[amount]
+    new = pd.DataFrame({
+
+        "Date": [date],
+        "Category": [category],
+        "Description": [description],
+        "Amount": [amount]
+
     })
 
-    df = pd.concat([df, new_row], ignore_index=True)
+    df = pd.concat([df, new], ignore_index=True)
 
     save_data(df)
-    
+
+
+def delete_expense(index):
+
+    df = load_data()
+
+    df = df.drop(index)
+
+    df.reset_index(drop=True, inplace=True)
+
+    save_data(df)
+
+
+def update_expense(index, date, category, description, amount):
+
+    df = load_data()
+
+    df.loc[index] = [
+
+        date,
+        category,
+        description,
+        amount
+
+    ]
+
+    save_data(df)
+
+
 def clear_data():
     df = pd.DataFrame(columns=COLUMNS)
     save_data(df)
+
+from utils import *
+
+print(load_data())
